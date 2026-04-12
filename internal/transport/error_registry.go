@@ -3,7 +3,7 @@ package transport
 import (
 	errconsts "github.com/brota/gobackend/internal/constants/errors"
 	transportConsts "github.com/brota/gobackend/internal/constants/errors/transport"
-	"github.com/brota/gobackend/internal/domainerrors"
+	"github.com/brota/gobackend/internal/custom_errors"
 )
 
 type ContextualErrorHandler = func(error, map[string]any) HTTPResponse
@@ -28,7 +28,7 @@ func NewErrorRegistry() *ErrorRegistry {
 	}
 }
 
-func DefaultFallbackHandler(err error, ctx map[string]any) HTTPResponse {
+func DefaultFallbackHandler(error, map[string]any) HTTPResponse {
 	return HTTPResponse{
 		Status: 500,
 		Code:   string(transportConsts.InternalErrorCode),
@@ -48,7 +48,7 @@ func (r *ErrorRegistry) Translate(err error) HTTPResponse {
 }
 
 func extractContext(err error) map[string]any {
-	if carrier, ok := err.(domainerrors.ContextCarrier); ok {
+	if carrier, ok := err.(custom_errors.ContextCarrier); ok {
 		return carrier.ContextData()
 	}
 	return map[string]any{}

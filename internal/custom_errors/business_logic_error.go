@@ -1,4 +1,4 @@
-package domainerrors
+package custom_errors
 
 import errCode "github.com/brota/gobackend/internal/constants/errors"
 import domainErrors "github.com/brota/gobackend/internal/constants/errors/domain"
