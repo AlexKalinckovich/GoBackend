@@ -1,8 +1,11 @@
 package user
 
 import (
-	errconsts "github.com/brota/gobackend/internal/constants/errors"
-	"github.com/brota/gobackend/internal/constants/errors/domain"
+	errconsts "github.com/brota/gobackend/internal/custom_errors/abstract_error_code"
+)
+
+const (
+	AlreadyExistsErrorCode = "ALREADY_EXISTS"
 )
 
 type AlreadyExistsError struct {
@@ -18,7 +21,7 @@ func (e *AlreadyExistsError) Error() string {
 }
 
 func (e *AlreadyExistsError) Code() errconsts.ErrorCode {
-	return domain.AlreadyExistsErrorCode
+	return AlreadyExistsErrorCode
 }
 
 func (e *AlreadyExistsError) ContextData() map[string]any {

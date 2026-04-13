@@ -1,6 +1,8 @@
 package infrastructure
 
-import errconsts "github.com/brota/gobackend/internal/constants/errors"
+import (
+	errconsts "github.com/brota/gobackend/internal/custom_errors/abstract_error_code"
+)
 
 import infrastructureErrorCodes "github.com/brota/gobackend/internal/constants/errors/infrastructure"
 

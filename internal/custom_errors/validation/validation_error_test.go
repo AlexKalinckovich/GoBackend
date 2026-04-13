@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"github.com/brota/gobackend/internal/constants/errors/domain"
 	"testing"
 )
 
@@ -17,15 +16,15 @@ func runValidationErrorSuite(t *testing.T) {
 	assertValidationErrorContext(t, err)
 }
 
-func assertValidationErrorCode(t *testing.T, err *ValidationError) {
-	expected := domain.ValidationErrorCode
+func assertValidationErrorCode(t *testing.T, err *Error) {
+	expected := ErrorCode
 	actual := err.Code()
 	if actual != expected {
 		t.Errorf("code mismatch: expected %s, got %s", expected, actual)
 	}
 }
 
-func assertValidationErrorString(t *testing.T, err *ValidationError) {
+func assertValidationErrorString(t *testing.T, err *Error) {
 	expected := "invalid format"
 	actual := err.Error()
 	if actual != expected {
@@ -33,7 +32,7 @@ func assertValidationErrorString(t *testing.T, err *ValidationError) {
 	}
 }
 
-func assertValidationErrorField(t *testing.T, err *ValidationError) {
+func assertValidationErrorField(t *testing.T, err *Error) {
 	expected := "email"
 	actual := err.Field()
 	if actual != expected {
@@ -41,7 +40,7 @@ func assertValidationErrorField(t *testing.T, err *ValidationError) {
 	}
 }
 
-func assertValidationErrorContext(t *testing.T, err *ValidationError) {
+func assertValidationErrorContext(t *testing.T, err *Error) {
 	ctx := err.ContextData()
 	verifyContextField(t, ctx)
 	verifyContextMessage(t, ctx)
@@ -76,29 +75,29 @@ func runAggregateLifecycleSuite(t *testing.T) {
 	assertAggregateErrorString(t, agg)
 }
 
-func assertAggregateEmpty(t *testing.T, agg *ValidationAggregateError) {
+func assertAggregateEmpty(t *testing.T, agg *AggregateError) {
 	hasErrors := agg.HasErrors()
 	if hasErrors {
 		t.Errorf("expected empty aggregate to report no errors")
 	}
 }
 
-func aggregateAddSingleField(t *testing.T, agg *ValidationAggregateError) {
+func aggregateAddSingleField(t *testing.T, agg *AggregateError) {
 	agg.AddField("email", "invalid format")
 }
 
-func assertAggregateSingleField(t *testing.T, agg *ValidationAggregateError) {
+func assertAggregateSingleField(t *testing.T, agg *AggregateError) {
 	hasErrors := agg.HasErrors()
 	if !hasErrors {
 		t.Errorf("expected aggregate to report errors after adding one")
 	}
 }
 
-func aggregateAddMultipleFields(t *testing.T, agg *ValidationAggregateError) {
+func aggregateAddMultipleFields(t *testing.T, agg *AggregateError) {
 	agg.AddField("age", "must be positive")
 }
 
-func assertAggregateMultipleFields(t *testing.T, agg *ValidationAggregateError) {
+func assertAggregateMultipleFields(t *testing.T, agg *AggregateError) {
 	ctx := agg.ContextData()
 	details := extractDetailsFromContext(ctx)
 	verifyDetailsCount(t, details)
@@ -118,15 +117,15 @@ func verifyDetailsCount(t *testing.T, details map[string]string) {
 	}
 }
 
-func assertAggregateCode(t *testing.T, agg *ValidationAggregateError) {
-	expected := domain.ValidationAggregateErrorCode
+func assertAggregateCode(t *testing.T, agg *AggregateError) {
+	expected := AggregateErrorCode
 	actual := agg.Code()
 	if actual != expected {
 		t.Errorf("aggregate code mismatch: expected %s, got %s", expected, actual)
 	}
 }
 
-func assertAggregateErrorString(t *testing.T, agg *ValidationAggregateError) {
+func assertAggregateErrorString(t *testing.T, agg *AggregateError) {
 	expected := "validation failed"
 	actual := agg.Error()
 	if actual != expected {
