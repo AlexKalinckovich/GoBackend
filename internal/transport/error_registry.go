@@ -1,9 +1,9 @@
 package transport
 
 import (
-	errconsts "github.com/brota/gobackend/internal/constants/errors"
-	transportConsts "github.com/brota/gobackend/internal/constants/errors/transport"
 	"github.com/brota/gobackend/internal/custom_errors"
+	errconsts "github.com/brota/gobackend/internal/custom_errors/abstract_error_code"
+	"github.com/brota/gobackend/internal/custom_errors/transport"
 )
 
 type ContextualErrorHandler = func(error, map[string]any) HTTPResponse
@@ -31,7 +31,7 @@ func NewErrorRegistry() *ErrorRegistry {
 func DefaultFallbackHandler(error, map[string]any) HTTPResponse {
 	return HTTPResponse{
 		Status: 500,
-		Code:   string(transportConsts.InternalErrorCode),
+		Code:   string(transport.InternalErrorCode),
 		Detail: "unexpected error",
 	}
 }
@@ -58,7 +58,7 @@ func ExtractErrorCode(err error) errconsts.ErrorCode {
 	if provider, ok := err.(ErrorCodeProvider); ok {
 		return provider.Code()
 	}
-	return transportConsts.UnknownErrorCode
+	return transport.UnknownErrorCode
 }
 
 func (r *ErrorRegistry) ResolveHandler(code errconsts.ErrorCode) ContextualErrorHandler {

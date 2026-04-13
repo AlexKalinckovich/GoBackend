@@ -1,59 +1,83 @@
 package validation
 
 import (
-	errCode "github.com/brota/gobackend/internal/constants/errors"
-	"github.com/brota/gobackend/internal/constants/errors/domain"
+	"github.com/brota/gobackend/internal/custom_errors/abstract_error_code"
+	"strings"
 )
 
-type ValidationError struct {
+const (
+	ErrorCode          abstract_error_code.ErrorCode = "VALIDATION_ERROR"
+	AggregateErrorCode abstract_error_code.ErrorCode = "VALIDATION_AGGREGATE_ERROR"
+)
+
+type Error struct {
 	field   string
 	message string
 }
 
-func NewValidationError(field string, message string) *ValidationError {
-	return &ValidationError{field: field, message: message}
+func NewValidationError(field string, message string) *Error {
+	return &Error{field: field, message: message}
 }
 
-func (e *ValidationError) Error() string {
+func (e *Error) Error() string {
 	return e.message
 }
 
-func (e *ValidationError) Code() errCode.ErrorCode {
-	return domain.ValidationErrorCode
+func (e *Error) Code() abstract_error_code.ErrorCode {
+	return ErrorCode
 }
 
-func (e *ValidationError) Field() string {
+func (e *Error) Field() string {
 	return e.field
 }
 
-func (e *ValidationError) ContextData() map[string]any {
+func (e *Error) ContextData() map[string]any {
 	return map[string]any{"field": e.field, "message": e.message}
 }
 
-type ValidationAggregateError struct {
-	errors map[string]string
+type FieldError struct {
+	Field   string `json:"field"`
+	Value   any    `json:"value,omitempty"`
+	Message string `json:"message"`
 }
 
-func NewValidationAggregateError() *ValidationAggregateError {
-	return &ValidationAggregateError{errors: make(map[string]string)}
+type AggregateError struct {
+	Errors []FieldError
 }
 
-func (e *ValidationAggregateError) AddField(field string, message string) {
-	e.errors[field] = message
+func NewAggregateError() *AggregateError {
+	return &AggregateError{}
 }
 
-func (e *ValidationAggregateError) HasErrors() bool {
-	return len(e.errors) > 0
+func (e *AggregateError) Add(field string, value any, message string) {
+	e.Errors = append(e.Errors, FieldError{
+		Field:   field,
+		Value:   value,
+		Message: message,
+	})
 }
 
-func (e *ValidationAggregateError) Error() string {
-	return "validation failed"
+func (e *AggregateError) HasErrors() bool {
+	return len(e.Errors) > 0
 }
 
-func (e *ValidationAggregateError) Code() errCode.ErrorCode {
-	return domain.ValidationAggregateErrorCode
+func (e *AggregateError) Error() string {
+	if len(e.Errors) == 0 {
+		return "validation passed"
+	}
+	msgs := make([]string, len(e.Errors))
+	for i, fe := range e.Errors {
+		msgs[i] = fe.Field + ": " + fe.Message
+	}
+	return strings.Join(msgs, "; ")
 }
 
-func (e *ValidationAggregateError) ContextData() map[string]any {
-	return map[string]any{"details": e.errors}
+func (e *AggregateError) Code() abstract_error_code.ErrorCode {
+	return AggregateErrorCode
+}
+
+func (e *AggregateError) ContextData() map[string]any {
+	return map[string]any{
+		"errors": e.Errors,
+	}
 }
