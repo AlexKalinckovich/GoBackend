@@ -1,7 +1,14 @@
 package transport
 
 type HTTPResponse struct {
-	Status int    `json:"status"`
-	Code   string `json:"code"`
-	Detail any    `json:"detail,omitempty"`
+	status  int
+	Message any `json:"message"`
+}
+
+func NewHTTPResponse(status int, message any) HTTPResponse {
+	return HTTPResponse{status: status, Message: message}
+}
+
+func (r HTTPResponse) Status() int {
+	return r.status
 }
