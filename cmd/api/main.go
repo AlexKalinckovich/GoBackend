@@ -2,14 +2,18 @@ package main
 
 import (
 	"database/sql"
-	"github.com/brota/gobackend/internal/db"
-	"github.com/brota/gobackend/internal/handler/user"
-	"github.com/brota/gobackend/internal/repository"
+	handler "github.com/brota/gobackend/internal/shared/_handler_temp"
+	"github.com/brota/gobackend/internal/shared/_handler_temp/user"
+	"github.com/brota/gobackend/internal/shared/config"
+	"github.com/brota/gobackend/internal/shared/db"
+	"github.com/brota/gobackend/internal/shared/redis"
+	"github.com/brota/gobackend/internal/user/repository/repository"
+	redis2 "github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/brota/gobackend/internal/handler"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/go-sql-driver/mysql"
@@ -71,10 +75,29 @@ func main() {
 	}
 	log.Println("Successfully connected to database")
 
+	redisCfg := config.RedisConfig{
+		Addr:     os.Getenv("REDIS_ADDR"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
+	}
+	if redisCfg.Addr == "" {
+		redisCfg.Addr = "localhost:6379"
+	}
+	rdb, err := redis.NewClient(redisCfg)
+	if err != nil {
+		log.Fatalf("Cannot connect to Redis: %v", err)
+	}
+	defer func(rdb redis2.Client) {
+		_ = rdb.Close()
+	}(*rdb)
+
 	queries := db.New(conn)
 
-	userRepo := repository.NewUserRepository(queries, conn)
-	userHandler := user.NewUserHandler(userRepo)
+	baseUserRepo := repository.NewUserRepositoryWithQueriesAndConn(queries, conn)
+
+	cachedUserRepo := repository.NewCachedUserRepository(baseUserRepo, rdb, 5*time.Minute)
+
+	userHandler := user.NewUserHandler(cachedUserRepo)
 
 	readinessHandler := handler.NewReadinessHandler()
 	testErrorHandler := handler.NewTestErrorHandler()
