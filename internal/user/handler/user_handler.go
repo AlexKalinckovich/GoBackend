@@ -1,11 +1,11 @@
-package user
+package handler
 
 import (
 	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
-	handler "github.com/brota/gobackend/internal/shared/_handler_temp"
+	handler "github.com/brota/gobackend/internal/shared/common_handler"
 	"io"
 	"net/http"
 	"strconv"

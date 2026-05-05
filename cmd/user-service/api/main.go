@@ -2,12 +2,12 @@ package main
 
 import (
 	"database/sql"
-	handler "github.com/brota/gobackend/internal/shared/_handler_temp"
-	"github.com/brota/gobackend/internal/shared/_handler_temp/user"
+	handler "github.com/brota/gobackend/internal/shared/common_handler"
 	"github.com/brota/gobackend/internal/shared/config"
 	"github.com/brota/gobackend/internal/shared/db"
 	"github.com/brota/gobackend/internal/shared/redis"
-	"github.com/brota/gobackend/internal/user/repository/repository"
+	userhandler "github.com/brota/gobackend/internal/user/handler"
+	repository2 "github.com/brota/gobackend/internal/user/repository"
 	redis2 "github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
@@ -93,11 +93,11 @@ func main() {
 
 	queries := db.New(conn)
 
-	baseUserRepo := repository.NewUserRepositoryWithQueriesAndConn(queries, conn)
+	baseUserRepo := repository2.NewUserRepositoryWithQueriesAndConn(queries, conn)
 
-	cachedUserRepo := repository.NewCachedUserRepository(baseUserRepo, rdb, 5*time.Minute)
+	cachedUserRepo := repository2.NewCachedUserRepository(baseUserRepo, rdb, 5*time.Minute)
 
-	userHandler := user.NewUserHandler(cachedUserRepo)
+	userHandler := userhandler.NewUserHandler(cachedUserRepo)
 
 	readinessHandler := handler.NewReadinessHandler()
 	testErrorHandler := handler.NewTestErrorHandler()

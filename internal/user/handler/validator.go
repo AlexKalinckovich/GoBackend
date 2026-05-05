@@ -1,4 +1,4 @@
-package user
+package handler
 
 import (
 	"github.com/brota/gobackend/internal/shared/custom_errors/validation"

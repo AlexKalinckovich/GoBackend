@@ -3,7 +3,7 @@ package repository_test
 import (
 	"context"
 	"database/sql"
-	"github.com/brota/gobackend/internal/user/repository/repository"
+	"github.com/brota/gobackend/internal/user/repository"
 	"log"
 	"testing"
 	"time"
