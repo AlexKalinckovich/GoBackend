@@ -1,28 +1,35 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/brota/gobackend/internal/handler"
 	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/brota/gobackend/internal/custom_errors/validation"
 	"github.com/brota/gobackend/internal/db"
-	"github.com/brota/gobackend/internal/repository"
+	"github.com/brota/gobackend/internal/handler"
 	"github.com/brota/gobackend/internal/transport"
 	"github.com/go-chi/chi/v5"
 )
 
+type Repository interface {
+	CreateUserWithID(ctx context.Context, params db.CreateUserParams) (int64, error)
+	GetUserByID(ctx context.Context, id int64) (*db.User, error)
+	UpdateUser(ctx context.Context, params db.UpdateUserParams) error
+	DeleteUser(ctx context.Context, id int64) error
+}
+
 type Handler struct {
 	rh        *handler.RequestHandler
-	repo      *repository.UserRepository
+	repo      Repository
 	validator *Validator
 }
 
-func NewUserHandler(repo *repository.UserRepository) *Handler {
+func NewUserHandler(repo Repository) *Handler {
 	registry := transport.NewErrorRegistry()
 	registry.Register(validation.AggregateErrorCode, func(err error, ctx map[string]any) transport.HTTPResponse {
 		return transport.NewHTTPResponse(http.StatusBadRequest, err)
@@ -292,6 +299,25 @@ func (h *Handler) PatchUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		return transport.NewHTTPResponse(http.StatusOK, resp), nil
+	}
+
+	h.rh.TryAction(w, action)
+}
+
+func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	action := func() (transport.HTTPResponse, error) {
+		idStr := chi.URLParam(r, "id")
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			return transport.HTTPResponse{}, validation.NewValidationError("id", "invalid user id")
+		}
+
+		err = h.repo.DeleteUser(r.Context(), id)
+		if err != nil {
+			return transport.HTTPResponse{}, err
+		}
+
+		return transport.NewHTTPResponse(http.StatusNoContent, nil), nil
 	}
 
 	h.rh.TryAction(w, action)

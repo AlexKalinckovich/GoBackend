@@ -7,15 +7,25 @@ import (
 	"github.com/brota/gobackend/internal/db"
 )
 
-type UserRepository struct {
+type BaseRepository struct {
 	queries *db.Queries
 	db      *sql.DB
 }
 
-func NewUserRepository(queries *db.Queries, db *sql.DB) *UserRepository {
-	return &UserRepository{
+func NewBaseRepository(queries *db.Queries, database *sql.DB) *BaseRepository {
+	return &BaseRepository{
 		queries: queries,
-		db:      db,
+		db:      database,
+	}
+}
+
+type UserRepository struct {
+	*BaseRepository
+}
+
+func NewUserRepository(base *BaseRepository) *UserRepository {
+	return &UserRepository{
+		BaseRepository: base,
 	}
 }
 
@@ -25,9 +35,7 @@ func (r *UserRepository) CreateUserWithID(ctx context.Context, params db.CreateU
 		return 0, err
 	}
 	defer func(tx *sql.Tx) {
-		err := tx.Rollback()
-		if err != nil {
-		}
+		_ = tx.Rollback()
 	}(tx)
 
 	qtx := r.queries.WithTx(tx)
@@ -56,6 +64,14 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id int64) (*db.User, e
 
 func (r *UserRepository) UpdateUser(ctx context.Context, params db.UpdateUserParams) error {
 	err := r.queries.UpdateUser(ctx, params)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *UserRepository) DeleteUser(ctx context.Context, id int64) error {
+	err := r.queries.DeleteUser(ctx, id)
 	if err != nil {
 		return err
 	}
