@@ -29,6 +29,12 @@ func NewUserRepository(base *BaseRepository) *UserRepository {
 	}
 }
 
+func NewUserRepositoryWithQueriesAndConn(queries *db.Queries, conn *sql.DB) *UserRepository {
+	return &UserRepository{
+		BaseRepository: NewBaseRepository(queries, conn),
+	}
+}
+
 func (r *UserRepository) CreateUserWithID(ctx context.Context, params db.CreateUserParams) (int64, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

@@ -14,8 +14,20 @@ services:
     networks:
       - backend
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-dev
+    command: redis-server --requirepass abc3k4woasdkfrhfb32281nfu3inf13489
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+
 volumes:
   mysql-data:
+  redis-data:
 
 networks:
   backend:
